@@ -1,0 +1,47 @@
+server:
+  port: 8080
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/ltw
+    username: root
+    password: 10102000
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    open-in-view: true
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format-sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: siuduongminh@gmail.com
+    password: "rckk sogp lvyc ezcf"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+    config:
+      import: "optional:file:.env[.properties]"
+jwt:
+  expiration: 2592000
+  secretKey: 2aATAiGKfFasIR0ppV8kwBTHbXQSjB7Vzb0zq0rId4Q=
+#fileUpload:
+#  rootPath: C:\Users\84833\Desktop\uploads
+
