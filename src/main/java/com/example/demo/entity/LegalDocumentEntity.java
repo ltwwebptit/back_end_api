@@ -43,8 +43,6 @@ public class LegalDocumentEntity {
     @Column(name = "status", nullable = false)
     private Boolean status = true;
 
-    @Column(name = "category_id", insertable = false, updatable = false)
-    private Integer categoryId;
 
     @ManyToOne
     @JoinColumn(name = "category_id")

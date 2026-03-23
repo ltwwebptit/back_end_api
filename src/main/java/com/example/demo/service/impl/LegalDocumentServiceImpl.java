@@ -30,7 +30,7 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
         entity.setUpdatedAt(LocalDateTime.now());
         
         if (entity.getStatus() == null) {
-            entity.setStatus(true); // default active
+            entity.setStatus(true);
         }
 
         entity = repository.save(entity);
@@ -62,7 +62,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
             LegalCategoriesEntity category = new LegalCategoriesEntity();
             category.setId(dto.getCategoryId());
             existingEntity.setCategory(category);
-            existingEntity.setCategoryId(dto.getCategoryId());
         }
 
         existingEntity = repository.save(existingEntity);

@@ -18,7 +18,6 @@ public class LegalDocumentConvert {
             LegalCategoriesEntity category = new LegalCategoriesEntity();
             category.setId(dto.getCategoryId());
             entity.setCategory(category);
-            entity.setCategoryId(dto.getCategoryId());
         }
         return entity;
     }
@@ -27,8 +26,6 @@ public class LegalDocumentConvert {
         LegalDocumentDTO dto = modelMapper.map(entity, LegalDocumentDTO.class);
         if (entity.getCategory() != null) {
             dto.setCategoryId(entity.getCategory().getId());
-        } else if (entity.getCategoryId() != null) {
-            dto.setCategoryId(entity.getCategoryId());
         }
         return dto;
     }
