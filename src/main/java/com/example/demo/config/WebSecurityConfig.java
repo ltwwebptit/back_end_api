@@ -33,7 +33,8 @@ public class WebSecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/error"
+                                "/error",
+                                "/api/test-connection" // <-- THÊM DÒNG NÀY ĐỂ NEXT.JS GỌI ĐƯỢC API TEST
                         ).permitAll()
                         .requestMatchers("/api/*/create", "/api/*/update", "/api/*/delete/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "CUSTOMER")
@@ -49,6 +50,7 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
+        // Cấu hình origin này của bạn rất chuẩn với AllowCredentials
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
