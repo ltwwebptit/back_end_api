@@ -13,7 +13,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ltw
     username: root
-    password: 10102000
+    password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     open-in-view: true
@@ -37,11 +37,8 @@ spring:
           auth: true
           starttls:
             enable: true
-    config:
-      import: "optional:file:.env[.properties]"
+  config:
+    import: "optional:file:.env[.properties]"
 jwt:
   expiration: 2592000
   secretKey: 2aATAiGKfFasIR0ppV8kwBTHbXQSjB7Vzb0zq0rId4Q=
-#fileUpload:
-#  rootPath: C:\Users\84833\Desktop\uploads
-
