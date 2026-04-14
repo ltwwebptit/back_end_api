@@ -36,6 +36,7 @@ public class WebSecurityConfig {
                                 "/error"
                         ).permitAll()
                         .requestMatchers("/api/*/create", "/api/*/update", "/api/*/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").hasAnyRole("ADMIN", "CUSTOMER")
                         .anyRequest().authenticated()
                 )

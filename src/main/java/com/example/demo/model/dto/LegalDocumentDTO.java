@@ -14,6 +14,17 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LegalDocumentDTO {
+
+    public LegalDocumentDTO(Integer id, String title, String link, String type, String issuingAgency, LocalDateTime issueDate, Boolean status, Integer categoryId) {
+        this.id = id;
+        this.title = title;
+        this.link = link;
+        this.type = type;
+        this.issuingAgency = issuingAgency;
+        this.issueDate = issueDate;
+        this.status = status;
+        this.categoryId = categoryId;
+    }
     private Integer id;
 
     @NotBlank(message = "Title cannot be blank")
@@ -21,6 +32,8 @@ public class LegalDocumentDTO {
 
     @NotBlank(message = "Content cannot be blank")
     private String content;
+
+    private String link;
 
     @NotBlank(message = "Type cannot be blank")
     private String type;
@@ -38,7 +51,7 @@ public class LegalDocumentDTO {
     private LocalDateTime issueDate;
 
     private Boolean status;
-
+    private  Integer count = 0;
     @NotNull(message = "Category ID cannot be null")
     private Integer categoryId;
 }

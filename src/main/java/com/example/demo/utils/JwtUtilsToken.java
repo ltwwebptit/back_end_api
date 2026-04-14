@@ -24,10 +24,9 @@ public class JwtUtilsToken {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
-    public String generateToken(UsersEntity usersEntity,boolean is2faPassed) {
+    public String generateToken(UsersEntity usersEntity) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role",usersEntity.getRolename());
-        claims.put("2faPassed",is2faPassed);
         long expMillis = Long.parseLong(expiration)*1000L;
         return Jwts.builder()
                 .setClaims(claims)
@@ -50,10 +49,6 @@ public class JwtUtilsToken {
     }
     public  String extractUsernameFromToken(String token) {
         return getClaimFromToken(token,Claims::getSubject);
-    }
-    public boolean extract2faStatus(String token) {
-        Boolean status = getClaimFromToken(token, claims -> claims.get("2fa_passed", Boolean.class));
-        return status != null && status;
     }
     public String extractRole(String token) {
         return getClaimFromToken(token, claims -> claims.get("role", String.class));

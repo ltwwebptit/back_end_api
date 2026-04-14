@@ -61,11 +61,6 @@ public class JWTTokenFilter extends OncePerRequestFilter {
                     if (jwtUtilsToken.validateToken(token, userDetails)) {
 
 
-                        boolean is2faPassed = jwtUtilsToken.extract2faStatus(token);
-                        if (userDetails.isTwoFactorEnabled() && !is2faPassed) {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Vui lòng xác thực 2 lớp (OTP) để tiếp tục");
-                            return;
-                        }
 
 
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

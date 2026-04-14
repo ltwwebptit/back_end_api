@@ -5,6 +5,7 @@ import com.example.demo.service.LegalDocumentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +72,37 @@ public class LegalDocumentController {
             return ResponseEntity.ok(service.findAll());
         } catch (Exception e) {
             log.error("Exception during getAllDocuments: ", e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/getMaxcount")
+    public ResponseEntity<List<LegalDocumentDTO>> getMaxCount() {
+        log.info("Received request to fetch most viewed legal document");
+        try {
+            List<LegalDocumentDTO> allDocuments = service.findAll();
+            List<LegalDocumentDTO> maxcount = service.findMaxCount(allDocuments);
+            return ResponseEntity.ok(maxcount);
+        } catch (Exception e) {
+            log.error("Exception during getMaxCount: ", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<LegalDocumentDTO>> searchDocuments(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String agency,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        log.info("Search request: keyword={}, type={}, agency={}, year={}, page={}, size={}", keyword, type, agency, year, page, size);
+        try {
+            Page<LegalDocumentDTO> result = service.searchDocuments(keyword, type, agency, year, page, size);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Exception during searchDocuments: ", e);
             throw e;
         }
     }

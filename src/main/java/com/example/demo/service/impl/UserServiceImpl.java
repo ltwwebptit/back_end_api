@@ -22,12 +22,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +44,27 @@ public class UserServiceImpl implements UserService {
     private final MailService  mailService;
     private final TokenRegisterRepository tokenRegisterRepository;
     private final ExtarctUserUtils  extarctUserUtils;
-    private final OTPService otpService;
+
     @Override
+    public void forgotPassword(String email) {
+        Optional<UsersEntity> user = userRepository.findByEmail(email);
+        if(user.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Email không tồn tại trong hệ thống. Vui lòng kiểm tra lại.");
+        }
+        UsersEntity userEntity = user.get();
+        String newPassword = String.format("%06d", new java.util.Random().nextInt(999999));
+        userEntity.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(userEntity);
+
+        try {
+            mailService.sendEmailWithToken(email, "Mật khẩu khôi phục tạm thời của bạn là: " + newPassword + ". Vui lòng đăng nhập và tiến hành đổi mật khẩu ngay lập tức ở mục Hồ Sơ.");
+        } catch (MessagingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Không thể gửi email.");
+        }
+    }
+
+    @Override
+    @Transactional
     public void register(RegisterDTO register) {
         if(userRepository.existsByUsername(register.getUsername())) {
             throw  new ResponseStatusException(HttpStatus.CONFLICT ,"Username is already in use");
@@ -51,6 +75,7 @@ public class UserServiceImpl implements UserService {
         try{
             UsersEntity users = userConvert.toUserEntity(register);
             users.setPassword(passwordEncoder.encode(users.getPassword()));
+            users.setCreatedAt(new java.util.Date());
             String tokenRegister = UUID.randomUUID().toString();
             long oneDayInMillis = 24 * 60 * 60 * 1000;
             String link = "<a href='http://localhost:3000/accept_account?token=" + tokenRegister + "'>Tại đây</a>";
@@ -59,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
             TokenRegisterEntity tokenRegisterEntity = new TokenRegisterEntity();
             tokenRegisterEntity.setToken(tokenRegister);
-            tokenRegisterEntity.setExpirationDate(new java.sql.Date(System.currentTimeMillis() + oneDayInMillis));
+            tokenRegisterEntity.setExpirationDate(new Date(System.currentTimeMillis() + oneDayInMillis));
             tokenRegisterEntity.setUser(saved);
             tokenRegisterRepository.save(tokenRegisterEntity);
         } catch (Exception e) {
@@ -81,18 +106,8 @@ public class UserServiceImpl implements UserService {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 login.getUsername(), login.getPassword(), usersEntity.getAuthorities());
         LoginResponse loginResponse = new LoginResponse();
-        boolean is2fa = !usersEntity.isTwoFactorEnabled();
-        loginResponse.setToken(jwtUtilsToken.generateToken(usersEntity,is2fa));
+        loginResponse.setToken(jwtUtilsToken.generateToken(usersEntity));
         loginResponse.setRole(usersEntity.getRolename());
-        if(!is2fa){
-            String otpcode = String.format("06%d",new java.util.Random().nextInt(999999));
-            otpService.saveOtp(usersEntity.getUsername(), otpcode);
-            try {
-                mailService.sendEmailWithToken(usersEntity.getEmail(),"Mã xác thực 2 bước của bạn là: " + otpcode + ". Mã này có hiệu lực trong 5 phút.");
-            } catch (MessagingException e) {
-                throw new RuntimeException(e);
-            }
-        }
         return loginResponse;
     }
 
@@ -111,6 +126,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void acceptAccount(String token) {
         TokenRegisterEntity tokenRegisterEntity = tokenRegisterRepository.findByToken(token);
         if(tokenRegisterEntity == null) {
@@ -125,6 +141,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void resendToken(String email) {
         Optional<UsersEntity> user = userRepository.findByEmail(email);
         if(user.isEmpty()) {
@@ -145,7 +162,7 @@ public class UserServiceImpl implements UserService {
             TokenRegisterEntity tokenEntity = new TokenRegisterEntity();
             tokenEntity.setToken(token);
             tokenEntity.setUser(userEntity);
-            tokenEntity.setExpirationDate(new java.sql.Date(System.currentTimeMillis() + oneDayInMillis));
+            tokenEntity.setExpirationDate(new Date(System.currentTimeMillis() + oneDayInMillis));
             tokenRegisterRepository.save(tokenEntity);
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
@@ -155,33 +172,46 @@ public class UserServiceImpl implements UserService {
     @Override
     public UsersEntity getProfile(HttpServletRequest request) {
         UsersEntity user = extarctUserUtils.extract(request);
-
         return user;
     }
 
     @Override
     public List<UserDTO> getUsers(HttpServletRequest request) {
-        return List.of();
+        return userRepository.findAll().stream()
+                .map(userConvert::toUserDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public String verifyOtp(String tempToken, String otpCode) {
-        String username = jwtUtilsToken.extractUsernameFromToken(tempToken);
-        UsersEntity userEntity = userRepository.findByUsernameAndStatus(username, 1)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    public void updateUserRole(Integer id, String role) {
+        UsersEntity user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
+        user.setRolename(role);
+        userRepository.save(user);
+    }
 
-        String validOtp = otpService.getOtp(username);
-
-        if (validOtp == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mã OTP đã hết hạn hoặc không tồn tại");
+    @Override
+    public void deleteUser(Integer id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id);
         }
+        userRepository.deleteById(id);
+    }
 
-        if (!otpCode.equals(validOtp)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Mã OTP không chính xác");
-        }
+    @Override
+    public java.util.List<UserDTO> getRecentRegisteredUsers() {
+        return userRepository.findAll().stream()
+                .sorted((u1, u2) -> u2.getId().compareTo(u1.getId()))
+                .limit(4)
+                .map(userConvert::toUserDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
-        otpService.deleteOtp(username);
-
-        return jwtUtilsToken.generateToken(userEntity, true);
+    @Override
+    public List<UserDTO> getMonthlyRegisteredUsers(int month, int year) {
+        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0, 0);
+        LocalDateTime end = start.withDayOfMonth(start.toLocalDate().lengthOfMonth()).with(LocalTime.MAX);
+        return userRepository.findByCreatedAtBetweenOrderByCreatedAtDesc(start, end)
+                .stream().map(userConvert::toUserDTO).collect(Collectors.toList());
     }
 }

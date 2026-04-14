@@ -11,7 +11,7 @@ spring:
       port: 6379
 
   datasource:
-    url: jdbc:mysql://localhost:3306/ltw
+    url: jdbc:mysql://localhost:3306/ltw?sessionVariables=sort_buffer_size=67108864
     username: root
     password: 10102000
     driver-class-name: com.mysql.cj.jdbc.Driver

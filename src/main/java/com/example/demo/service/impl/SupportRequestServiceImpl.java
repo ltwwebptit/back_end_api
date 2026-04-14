@@ -117,7 +117,7 @@ public class SupportRequestServiceImpl implements SupportRequestService {
             throw new RuntimeException("Error sending mail", e);
         }
 
-        request.setStatus(1); // 1 = closed/replied
+        request.setStatus(2);
         supportRequestRepository.save(request);
         log.info("Replied to Support Request {} and sent email to {}", requestId, userEmail);
     }

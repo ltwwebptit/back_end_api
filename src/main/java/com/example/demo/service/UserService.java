@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public interface UserService {
+    void forgotPassword(String email);
     void register(RegisterDTO register);
     LoginResponse login(LoginDTO login);
     void updatePassword(UpdatePassword updatePassword);
@@ -18,5 +19,8 @@ public interface UserService {
     void resendToken(String email);
     UsersEntity getProfile(HttpServletRequest request);
     List<UserDTO> getUsers(HttpServletRequest request);
-    String verifyOtp(String tempToken, String otpCode);
+    List<UserDTO> getRecentRegisteredUsers();
+    List<UserDTO> getMonthlyRegisteredUsers(int month, int year);
+    void updateUserRole(Integer id, String role);
+    void deleteUser(Integer id);
 }

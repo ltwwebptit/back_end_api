@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -34,8 +35,6 @@ public class UsersEntity implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "two_factor_enabled")
-    private boolean  twoFactorEnabled;
 
     @Column(name = "created_at")
     private Date createdAt;
@@ -52,6 +51,7 @@ public class UsersEntity implements UserDetails {
         authorities.add(new SimpleGrantedAuthority("ROLE_"+this.rolename));
         return authorities;
     }
+    @JsonIgnore
     @OneToMany(mappedBy = "user")
     private List<SupportRequestsEntity> supportRequests;
 
