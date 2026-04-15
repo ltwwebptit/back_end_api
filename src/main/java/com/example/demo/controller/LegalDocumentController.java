@@ -2,12 +2,15 @@ package com.example.demo.controller;
 
 import com.example.demo.model.dto.LegalDocumentDTO;
 import com.example.demo.service.LegalDocumentService;
+import com.example.demo.service.PDFService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -18,12 +21,19 @@ import java.util.List;
 public class LegalDocumentController {
 
     private final LegalDocumentService service;
+    private final PDFService pdfService;
 
     @PostMapping
     public ResponseEntity<LegalDocumentDTO> createDocument(@Valid @RequestBody LegalDocumentDTO dto) {
         log.info("Received request to create legal document: {}", dto.getTitle());
         try {
-            return ResponseEntity.ok(service.create(dto));
+            LegalDocumentDTO saved = service.create(dto);
+            byte[] pdfBytes = pdfService.genaratePdf(saved);
+            String fileName = "LegalDoc_" + saved.getId() + ".pdf";
+            pdfService.sendPdfToAnotherService(pdfBytes, fileName);
+
+            log.info("Quy trình hoàn tất cho tài liệu ID: {}", saved.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
         } catch (Exception e) {
             log.error("Exception during createDocument: ", e);
             throw e;
@@ -106,4 +116,5 @@ public class LegalDocumentController {
             throw e;
         }
     }
+
 }
