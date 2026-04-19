@@ -2,7 +2,6 @@ package com.example.demo.service.impl;
 
 import com.example.demo.service.MailService;
 import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailSendException;

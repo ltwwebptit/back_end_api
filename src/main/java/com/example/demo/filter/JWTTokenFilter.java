@@ -60,9 +60,6 @@ public class JWTTokenFilter extends OncePerRequestFilter {
 
                     if (jwtUtilsToken.validateToken(token, userDetails)) {
 
-
-
-
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities()
                         );
