@@ -21,4 +21,6 @@ public class RegisterDTO {
     private String username;
     @NotBlank(message = "Password is not blank")
     private String password;
+    @NotBlank(message = "Fullname is not blank")
+    private String fullname;
 }
